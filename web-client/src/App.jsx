@@ -111,6 +111,20 @@ function App() {
 
     socket.on("user-left", ({ socketId }) => {
       setUsers((prev) => prev.filter((id) => id !== socketId));
+
+      const pc = peersRef.current[socketId];
+      if (pc) {
+        pc.close();
+        delete peersRef.current[socketId];
+      }
+
+      const stream = remoteStreamsRef.current[socketId];
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+        delete remoteStreamsRef.current[socketId];
+      }
+
+      setRemoteUsers((prev) => prev.filter((id) => id !== socketId));
     });
 
     socket.on("chat-message", (msg) => {
@@ -183,10 +197,22 @@ function App() {
     if (socketRef.current) {
       socketRef.current.emit("leave-room");
     }
+
+    Object.values(peersRef.current).forEach((pc) => pc.close());
+    peersRef.current = {};
+
+    Object.values(remoteStreamsRef.current).forEach((stream) => {
+      stream.getTracks((track) => track.stop());
+    });
+    remoteStreamsRef.current = {};
+
     setUsers([]);
     setMessages([]);
+    setRemoteUsers([]);
+    setPendingExistingUsers([]);
     setRoomId("");
     setJoined(false);
+    setLocalReady(false);
   };
 
   const handleSendChat = () => {
