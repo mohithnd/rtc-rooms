@@ -19,13 +19,13 @@ function removeUser(roomId, socketId) {
   }
 }
 
-function addUserToRoom(roomId, socketId) {
+function addUserToRoom(roomId, socketId, name) {
   const room = rooms.get(roomId);
   if (room) {
-    room.set(socketId, { audio: true, video: true });
+    room.set(socketId, { name, audio: true, video: true });
   } else {
     const newRoom = new Map();
-    newRoom.set(socketId, { audio: true, video: true });
+    newRoom.set(socketId, { name, audio: true, video: true });
     rooms.set(roomId, newRoom);
   }
 }

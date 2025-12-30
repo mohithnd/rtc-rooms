@@ -6,12 +6,12 @@ function registerSocketHandlers(io) {
   io.on("connection", (socket) => {
     console.log(`[socket-connected] socket=${socket.id}`);
 
-    socket.on("join-room", (roomId) => {
+    socket.on("join-room", ({ roomId, name }) => {
       if (socket.data.roomId) {
         handleLeaveRoom(io, socket);
       }
       socket.data.roomId = roomId;
-      handleJoinRoom(io, socket);
+      handleJoinRoom(io, socket, name);
     });
 
     socket.on("leave-room", () => {
@@ -23,8 +23,8 @@ function registerSocketHandlers(io) {
       handleLeaveRoom(io, socket);
     });
 
-    socket.on("chat-message", (payload) => {
-      handleChatMessage(io, socket, payload);
+    socket.on("chat-message", ({ message, name }) => {
+      handleChatMessage(io, socket, message, name);
     });
 
     socket.on("webrtc-offer", (payload) => {

@@ -1,19 +1,21 @@
 const { addUserToRoom, getUsersInRoom, removeUser } = require("../rooms/store");
 
-function handleJoinRoom(io, socket) {
+function handleJoinRoom(io, socket, name) {
   const existingUsers = getUsersInRoom(socket.data.roomId);
   socket.emit("existing-users", { existingUsers });
 
-  addUserToRoom(socket.data.roomId, socket.id);
+  addUserToRoom(socket.data.roomId, socket.id, name);
 
   socket.join(socket.data.roomId);
 
-  socket.to(socket.data.roomId).emit("user-joined", { socketId: socket.id });
+  socket
+    .to(socket.data.roomId)
+    .emit("user-joined", { socketId: socket.id, name });
 
   console.log(
-    `[join-room] room=${socket.data.roomId} socket=${socket.id} users=${
-      existingUsers.length + 1
-    }`
+    `[join-room] room=${socket.data.roomId} socket=${
+      socket.id
+    } name=${name} users=${existingUsers.length + 1}`
   );
 }
 
