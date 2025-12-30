@@ -202,7 +202,7 @@ function App() {
     peersRef.current = {};
 
     Object.values(remoteStreamsRef.current).forEach((stream) => {
-      stream.getTracks((track) => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
     });
     remoteStreamsRef.current = {};
 
