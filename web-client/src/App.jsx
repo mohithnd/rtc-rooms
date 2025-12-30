@@ -7,6 +7,7 @@ function App() {
   const [users, setUsers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
+  const [name, setName] = useState("");
 
   const socketRef = useRef(null);
 
@@ -97,20 +98,24 @@ function App() {
     socketRef.current = socket;
 
     socket.on("existing-users", ({ existingUsers }) => {
-      const ids = existingUsers.map(([id]) => id);
-      console.log("[existing-users]", ids);
-      setUsers(ids);
-      setPendingExistingUsers(ids);
+      const list = existingUsers.map((u) => {
+        return { id: u[0], name: u[1].name };
+      });
+      console.log("[existing-users]", list);
+      setUsers(list);
+      setPendingExistingUsers(list.map((u) => u.id));
     });
 
-    socket.on("user-joined", ({ socketId }) => {
+    socket.on("user-joined", ({ socketId, name }) => {
       setUsers((prev) =>
-        prev.includes(socketId) ? prev : [...prev, socketId]
+        prev.some((u) => u.id === socketId)
+          ? prev
+          : [...prev, { id: socketId, name }]
       );
     });
 
     socket.on("user-left", ({ socketId }) => {
-      setUsers((prev) => prev.filter((id) => id !== socketId));
+      setUsers((prev) => prev.filter((u) => u.id !== socketId));
 
       const pc = peersRef.current[socketId];
       if (pc) {
@@ -164,7 +169,7 @@ function App() {
     socket.on("webrtc-ice-candidate", async ({ socketId, data }) => {
       const pc = peersRef.current[socketId];
       if (!pc) {
-        console.warn("No peer connection for answer from", socketId);
+        console.warn("No peer connection for ICE from", socketId);
         return;
       }
 
@@ -185,11 +190,11 @@ function App() {
   }, []);
 
   const handleJoinRoom = () => {
-    if (!roomId || !socketRef.current) {
+    if (!roomId || !name || !socketRef.current) {
       return;
     }
 
-    socketRef.current.emit("join-room", roomId);
+    socketRef.current.emit("join-room", { roomId, name });
     setJoined(true);
   };
 
@@ -213,6 +218,7 @@ function App() {
     setRoomId("");
     setJoined(false);
     setLocalReady(false);
+    setName("");
   };
 
   const handleSendChat = () => {
@@ -220,7 +226,7 @@ function App() {
       return;
     }
 
-    socketRef.current.emit("chat-message", { message: chatInput.trim() });
+    socketRef.current.emit("chat-message", { message: chatInput.trim(), name });
     setChatInput("");
   };
 
@@ -266,6 +272,14 @@ function App() {
           onChange={(e) => setRoomId(e.target.value)}
           style={{ marginRight: 8 }}
         />
+        <br />
+        <input
+          placeholder="Enter Name..."
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={{ marginTop: 8, marginBottom: 8 }}
+        />
+        <br />
         <button onClick={handleJoinRoom}>Join</button>
       </div>
     );
@@ -278,8 +292,11 @@ function App() {
           <h3>Room: {roomId}</h3>
           <h4>Users</h4>
           <ul>
-            {users.map((id) => (
-              <li key={id}>{id}</li>
+            <li>
+              <strong>{name} (You)</strong>
+            </li>
+            {users.map((u) => (
+              <li key={u.id}>{u.name}</li>
             ))}
           </ul>
           <button onClick={handleLeaveRoom}>Leave</button>
@@ -302,7 +319,7 @@ function App() {
                   <span style={{ fontSize: 12, color: "#555" }}>
                     [{new Date(m.timestamp).toLocaleTimeString()}]
                   </span>{" "}
-                  <strong>{m.socketId.slice(0, 6)}</strong>: {m.message}
+                  <strong>{m.name}</strong>: {m.message}
                 </div>
               ))}
             </div>
