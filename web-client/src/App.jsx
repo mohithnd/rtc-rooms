@@ -8,6 +8,7 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
   const [name, setName] = useState("");
+  const [selfId, setSelfId] = useState(null);
 
   const socketRef = useRef(null);
 
@@ -96,6 +97,11 @@ function App() {
   useEffect(() => {
     const socket = io("http://localhost:3000");
     socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("Socket connected. My ID:", socket.id);
+      setSelfId(socket.id);
+    });
 
     socket.on("existing-users", ({ existingUsers }) => {
       const list = existingUsers.map((u) => {
@@ -314,14 +320,32 @@ function App() {
                 marginBottom: 8,
               }}
             >
-              {messages.map((m, idx) => (
-                <div key={idx}>
-                  <span style={{ fontSize: 12, color: "#555" }}>
-                    [{new Date(m.timestamp).toLocaleTimeString()}]
-                  </span>{" "}
-                  <strong>{m.name}</strong>: {m.message}
-                </div>
-              ))}
+              {messages.map((m, idx) => {
+                const isSelf = selfId && m.socketId === selfId;
+
+                const containerStyle = {
+                  marginBottom: 4,
+                  textAlign: isSelf ? "right" : "left",
+                };
+
+                const bubbleStyle = {
+                  display: "inline-block",
+                  padding: "4px 8px",
+                  borderRadius: 4,
+                  background: isSelf ? "#d1e7ff" : "#f1f1f1",
+                };
+
+                return (
+                  <div key={idx} style={containerStyle}>
+                    <div style={{ fontSize: 10, color: "#555" }}>
+                      [{new Date(m.timestamp).toLocaleTimeString()}]
+                    </div>
+                    <div style={bubbleStyle}>
+                      <strong>{isSelf ? "You" : m.name}</strong>: {m.message}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             <input
               value={chatInput}
