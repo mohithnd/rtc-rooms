@@ -214,6 +214,32 @@ function App() {
       }
     });
 
+    socket.on("disconnect", () => {
+      console.log("Socket Disconnected...");
+
+      Object.values(peersRef.current).forEach((pc) => pc.close());
+      peersRef.current = {};
+
+      Object.values(remoteStreamsRef.current).forEach((stream) => {
+        stream.getTracks().forEach((track) => track.stop());
+      });
+      remoteStreamsRef.current = {};
+
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach((track) => track.stop());
+        localStreamRef.current = null;
+      }
+
+      setUsers([]);
+      setMessages([]);
+      setRemoteUsers([]);
+      setPendingExistingUsers([]);
+      setRoomId("");
+      setJoined(false);
+      setLocalReady(false);
+      setName("");
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -240,6 +266,11 @@ function App() {
       stream.getTracks().forEach((track) => track.stop());
     });
     remoteStreamsRef.current = {};
+
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => track.stop());
+      localStreamRef.current = null;
+    }
 
     setUsers([]);
     setMessages([]);
