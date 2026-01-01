@@ -5,6 +5,7 @@ import JoinRoom from "./components/JoinRoom";
 import ChatBox from "./components/ChatBox";
 import LocalVideo from "./components/LocalVideo";
 import RemoteVideos from "./components/RemoteVideos";
+import Sidebar from "./components/Sidebar";
 
 function App() {
   const [roomId, setRoomId] = useState("");
@@ -312,20 +313,12 @@ function App() {
       <div
         style={{ display: "flex", height: "100vh", fontFamily: "sans-serif" }}
       >
-        <div style={{ width: 280, borderRight: "1px solid #ccc", padding: 12 }}>
-          <h3>Room: {roomId}</h3>
-          <h4>Users</h4>
-          <ul>
-            <li>
-              <strong>{name} (You)</strong>
-            </li>
-            {users.map((u) => (
-              <li key={u.id}>{u.name}</li>
-            ))}
-          </ul>
-          <button onClick={handleLeaveRoom}>Leave</button>
-        </div>
-
+        <Sidebar
+          roomId={roomId}
+          name={name}
+          users={users}
+          handleLeaveRoom={handleLeaveRoom}
+        />
         <div style={{ flex: 1, padding: 12 }}>
           <ChatBox
             messages={messages}
