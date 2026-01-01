@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 import CryptoJS from "crypto-js";
 import JoinRoom from "./components/JoinRoom";
 import ChatBox from "./components/ChatBox";
+import LocalVideo from "./components/LocalVideo";
 
 function App() {
   const [roomId, setRoomId] = useState("");
@@ -332,28 +333,7 @@ function App() {
             setChatInput={setChatInput}
             handleSendChat={handleSendChat}
           />
-          <div>
-            <h4>Video</h4>
-            <div style={{ display: "inline-block", position: "relative" }}>
-              <video
-                ref={localVideoRef}
-                style={{ width: 320, height: 240, background: "#000" }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 4,
-                  left: 4,
-                  padding: "2px 4px",
-                  background: "rgba(0,0,0,0.6)",
-                  color: "#fff",
-                  fontSize: 12,
-                }}
-              >
-                {name} (You)
-              </div>
-            </div>
-          </div>
+          <LocalVideo name={name} localVideoRef={localVideoRef} />
           <div style={{ marginTop: 16 }}>
             <h4>Remote Videos</h4>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
