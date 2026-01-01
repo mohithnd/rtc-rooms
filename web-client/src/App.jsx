@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import CryptoJS from "crypto-js";
 
 function App() {
   const [roomId, setRoomId] = useState("");
@@ -9,6 +10,8 @@ function App() {
   const [chatInput, setChatInput] = useState("");
   const [name, setName] = useState("");
   const [selfId, setSelfId] = useState(null);
+
+  const roomKeyRef = useRef(null);
 
   const socketRef = useRef(null);
 
@@ -98,6 +101,11 @@ function App() {
     const socket = io("http://localhost:3000");
     socketRef.current = socket;
 
+    socket.on("room-key", ({ key }) => {
+      roomKeyRef.current = key;
+      console.log("Room Key Received:", key);
+    });
+
     socket.on("connect", () => {
       console.log("Socket connected. My ID:", socket.id);
       setSelfId(socket.id);
@@ -139,7 +147,18 @@ function App() {
     });
 
     socket.on("chat-message", (msg) => {
-      setMessages((prev) => [...prev, msg]);
+      if (!roomKeyRef.current) {
+        return;
+      }
+
+      try {
+        const bytes = CryptoJS.AES.decrypt(msg.message, roomKeyRef.current);
+        const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+
+        setMessages((prev) => [...prev, { ...msg, message: decrypted }]);
+      } catch (error) {
+        console.error("Decrypt Failed:", error);
+      }
     });
 
     socket.on("webrtc-offer", async ({ socketId, data }) => {
@@ -228,11 +247,16 @@ function App() {
   };
 
   const handleSendChat = () => {
-    if (!chatInput.trim() || !socketRef.current) {
+    if (!roomKeyRef.current || !chatInput.trim() || !socketRef.current) {
       return;
     }
 
-    socketRef.current.emit("chat-message", { message: chatInput.trim(), name });
+    const encryptedMessage = CryptoJS.AES.encrypt(
+      chatInput.trim(),
+      roomKeyRef.current
+    ).toString();
+
+    socketRef.current.emit("chat-message", { message: encryptedMessage, name });
     setChatInput("");
   };
 
