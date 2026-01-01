@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import CryptoJS from "crypto-js";
+import JoinRoom from "./components/JoinRoom";
+import ChatBox from "./components/ChatBox";
 
 function App() {
   const [roomId, setRoomId] = useState("");
@@ -295,23 +297,13 @@ function App() {
 
   if (!joined) {
     return (
-      <div style={{ padding: 16 }}>
-        <input
-          placeholder="Enter Room ID..."
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-          style={{ marginRight: 8 }}
-        />
-        <br />
-        <input
-          placeholder="Enter Name..."
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ marginTop: 8, marginBottom: 8 }}
-        />
-        <br />
-        <button onClick={handleJoinRoom}>Join</button>
-      </div>
+      <JoinRoom
+        roomId={roomId}
+        setRoomId={setRoomId}
+        name={name}
+        setName={setName}
+        handleJoinRoom={handleJoinRoom}
+      />
     );
   } else {
     return (
@@ -333,52 +325,13 @@ function App() {
         </div>
 
         <div style={{ flex: 1, padding: 12 }}>
-          <div style={{ marginBottom: 12 }}>
-            <h4>Chat</h4>
-            <div
-              style={{
-                border: "1px solid #ccc",
-                height: 200,
-                overflow: "auto",
-                padding: 8,
-                marginBottom: 8,
-              }}
-            >
-              {messages.map((m, idx) => {
-                const isSelf = selfId && m.socketId === selfId;
-
-                const containerStyle = {
-                  marginBottom: 4,
-                  textAlign: isSelf ? "right" : "left",
-                };
-
-                const bubbleStyle = {
-                  display: "inline-block",
-                  padding: "4px 8px",
-                  borderRadius: 4,
-                  background: isSelf ? "#d1e7ff" : "#f1f1f1",
-                };
-
-                return (
-                  <div key={idx} style={containerStyle}>
-                    <div style={{ fontSize: 10, color: "#555" }}>
-                      [{new Date(m.timestamp).toLocaleTimeString()}]
-                    </div>
-                    <div style={bubbleStyle}>
-                      <strong>{isSelf ? "You" : m.name}</strong>: {m.message}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <input
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              placeholder="Type A Message..."
-              style={{ width: "70%", marginRight: 8 }}
-            />
-            <button onClick={handleSendChat}>Send</button>
-          </div>
+          <ChatBox
+            messages={messages}
+            selfId={selfId}
+            chatInput={chatInput}
+            setChatInput={setChatInput}
+            handleSendChat={handleSendChat}
+          />
           <div>
             <h4>Video</h4>
             <div style={{ display: "inline-block", position: "relative" }}>
