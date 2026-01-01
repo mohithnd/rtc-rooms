@@ -1,4 +1,5 @@
 const rooms = new Map();
+const roomKeys = new Map();
 
 function getUsersInRoom(roomId) {
   const room = rooms.get(roomId);
@@ -15,6 +16,7 @@ function removeUser(roomId, socketId) {
     room.delete(socketId);
     if (room.size === 0) {
       rooms.delete(roomId);
+      roomKeys.delete(roomId);
     }
   }
 }
@@ -38,9 +40,24 @@ function isSocketInRoom(roomId, socketId) {
   return room.has(socketId);
 }
 
+function isRoomKeyExists(roomId) {
+  return roomKeys.has(roomId);
+}
+
+function getRoomKey(roomId) {
+  return roomKeys.get(roomId);
+}
+
+function setRoomKey(roomId, key) {
+  roomKeys.set(roomId, key);
+}
+
 module.exports = {
   getUsersInRoom,
   removeUser,
   addUserToRoom,
   isSocketInRoom,
+  isRoomKeyExists,
+  getRoomKey,
+  setRoomKey,
 };
