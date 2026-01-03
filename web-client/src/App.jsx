@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import CryptoJS from "crypto-js";
 import JoinRoom from "./components/JoinRoom";
 import ChatBox from "./components/ChatBox";
@@ -6,7 +6,7 @@ import LocalVideo from "./components/LocalVideo";
 import RemoteVideos from "./components/RemoteVideos";
 import Sidebar from "./components/Sidebar";
 import { useRoom } from "./hooks/useRoom";
-import useSocket from "./hooks/useSocket";
+import useSignaling from "./hooks/useSignaling";
 import useLocalMedia from "./hooks/useLocalMedia";
 
 function App() {
@@ -17,102 +17,28 @@ function App() {
   const [chatInput, setChatInput] = useState("");
   const [selfId, setSelfId] = useState(null);
 
-  const peersRef = useRef({});
-  const remoteStreamsRef = useRef({});
-  const [remoteUsers, setRemoteUsers] = useState([]);
-
-  const [pendingExistingUsers, setPendingExistingUsers] = useState([]);
-
   const { localVideoRef, localStreamRef, localReady, setLocalReady } =
     useLocalMedia({ joined });
 
-  const { socketRef, roomKeyRef } = useSocket({
-    setSelfId,
-    setUsers,
-    setPendingExistingUsers,
+  const {
+    socketRef,
+    roomKeyRef,
     peersRef,
     remoteStreamsRef,
+    remoteUsers,
     setRemoteUsers,
+    setPendingExistingUsers,
+  } = useSignaling({
+    setSelfId,
+    setUsers,
     setMessages,
-    createPeerConnection,
     localStreamRef,
     setName,
     setLocalReady,
     setRoomId,
     setJoined,
+    localReady,
   });
-
-  function createPeerConnection(remoteSocketId) {
-    const pc = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-    });
-
-    pc.onicecandidate = (event) => {
-      if (event.candidate && socketRef.current) {
-        socketRef.current.emit("webrtc-ice-candidate", {
-          targetSocketId: remoteSocketId,
-          data: event.candidate,
-        });
-      }
-    };
-
-    pc.ontrack = (event) => {
-      const [stream] = event.streams;
-      remoteStreamsRef.current[remoteSocketId] = stream;
-      setRemoteUsers((prev) =>
-        prev.includes(remoteSocketId) ? prev : [...prev, remoteSocketId]
-      );
-    };
-
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach((track) => {
-        pc.addTrack(track, localStreamRef.current);
-      });
-    }
-
-    peersRef.current[remoteSocketId] = pc;
-    return pc;
-  }
-
-  useEffect(() => {
-    if (!localReady) {
-      console.log("[offer-effect] local not ready, skip");
-      return;
-    }
-    if (!socketRef.current) {
-      console.log("[offer-effect] no socket, skip");
-      return;
-    }
-    if (pendingExistingUsers.length === 0) {
-      console.log("[offer-effect] no pending users, skip");
-      return;
-    }
-
-    const socket = socketRef.current;
-
-    console.log(
-      "[webrtc-offer-effect] users=",
-      pendingExistingUsers,
-      "localStream?",
-      !!localStreamRef.current
-    );
-
-    pendingExistingUsers.forEach(async (remoteId) => {
-      const pc = createPeerConnection(remoteId);
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-
-      socket.emit("webrtc-offer", {
-        targetSocketId: remoteId,
-        data: offer,
-      });
-    });
-
-    function clearPendingExistingUsers() {
-      setPendingExistingUsers([]);
-    }
-    clearPendingExistingUsers();
-  }, [localReady, pendingExistingUsers]);
 
   const handleJoinRoom = () => {
     if (!roomId || !name || !socketRef.current) {
