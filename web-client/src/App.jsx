@@ -7,6 +7,7 @@ import RemoteVideos from "./components/RemoteVideos";
 import Sidebar from "./components/Sidebar";
 import { useRoom } from "./hooks/useRoom";
 import useSocket from "./hooks/useSocket";
+import useLocalMedia from "./hooks/useLocalMedia";
 
 function App() {
   const { setRoomId, setJoined, setName, roomId, joined, name } = useRoom();
@@ -16,15 +17,14 @@ function App() {
   const [chatInput, setChatInput] = useState("");
   const [selfId, setSelfId] = useState(null);
 
-  const localVideoRef = useRef(null);
-  const localStreamRef = useRef(null);
-  const [localReady, setLocalReady] = useState(false);
-
   const peersRef = useRef({});
   const remoteStreamsRef = useRef({});
   const [remoteUsers, setRemoteUsers] = useState([]);
 
   const [pendingExistingUsers, setPendingExistingUsers] = useState([]);
+
+  const { localVideoRef, localStreamRef, localReady, setLocalReady } =
+    useLocalMedia({ joined });
 
   const { socketRef, roomKeyRef } = useSocket({
     setSelfId,
@@ -164,39 +164,6 @@ function App() {
     socketRef.current.emit("chat-message", { message: encryptedMessage, name });
     setChatInput("");
   };
-
-  useEffect(() => {
-    if (!joined) {
-      return;
-    }
-
-    async function startLocalVideo() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: true,
-        });
-        localStreamRef.current = stream;
-        setLocalReady(true);
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-          localVideoRef.current.muted = true;
-          localVideoRef.current.play();
-        }
-      } catch (err) {
-        console.error("getUserMedia Error:", err);
-      }
-    }
-
-    startLocalVideo();
-
-    return () => {
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach((t) => t.stop());
-        localStreamRef.current = null;
-      }
-    };
-  }, [joined]);
 
   if (!joined) {
     return <JoinRoom handleJoinRoom={handleJoinRoom} />;
