@@ -1,5 +1,4 @@
 import { useState } from "react";
-import CryptoJS from "crypto-js";
 import JoinRoom from "./components/JoinRoom";
 import ChatBox from "./components/ChatBox";
 import LocalVideo from "./components/LocalVideo";
@@ -8,14 +7,14 @@ import Sidebar from "./components/Sidebar";
 import { useRoom } from "./hooks/useRoom";
 import useSignaling from "./hooks/useSignaling";
 import useLocalMedia from "./hooks/useLocalMedia";
+import useChat from "./hooks/useChat";
 
 function App() {
   const { setRoomId, setJoined, setName, roomId, joined, name } = useRoom();
 
   const [users, setUsers] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [chatInput, setChatInput] = useState("");
   const [selfId, setSelfId] = useState(null);
+  const [messages, setMessages] = useState([]);
 
   const { localVideoRef, localStreamRef, localReady, setLocalReady } =
     useLocalMedia({ joined });
@@ -38,6 +37,12 @@ function App() {
     setRoomId,
     setJoined,
     localReady,
+  });
+
+  const { handleSendChat, chatInput, setChatInput } = useChat({
+    roomKeyRef,
+    socketRef,
+    name,
   });
 
   const handleJoinRoom = () => {
@@ -75,20 +80,6 @@ function App() {
     setJoined(false);
     setLocalReady(false);
     setName("");
-  };
-
-  const handleSendChat = () => {
-    if (!roomKeyRef.current || !chatInput.trim() || !socketRef.current) {
-      return;
-    }
-
-    const encryptedMessage = CryptoJS.AES.encrypt(
-      chatInput.trim(),
-      roomKeyRef.current
-    ).toString();
-
-    socketRef.current.emit("chat-message", { message: encryptedMessage, name });
-    setChatInput("");
   };
 
   if (!joined) {
