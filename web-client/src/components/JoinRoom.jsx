@@ -1,4 +1,8 @@
-const JoinRoom = ({ roomId, setRoomId, name, setName, handleJoinRoom }) => {
+import { useRoom } from "../hooks/useRoom";
+
+const JoinRoom = ({ handleJoinRoom }) => {
+  const { setRoomId, setName, roomId, name } = useRoom();
+
   return (
     <div style={{ padding: 16 }}>
       <input

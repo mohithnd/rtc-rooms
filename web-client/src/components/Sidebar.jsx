@@ -1,4 +1,8 @@
-const Sidebar = ({ roomId, name, users, handleLeaveRoom }) => {
+import { useRoom } from "../hooks/useRoom";
+
+const Sidebar = ({ users, handleLeaveRoom }) => {
+  const { roomId, name } = useRoom();
+
   return (
     <div style={{ width: 280, borderRight: "1px solid #ccc", padding: 12 }}>
       <h3>Room: {roomId}</h3>

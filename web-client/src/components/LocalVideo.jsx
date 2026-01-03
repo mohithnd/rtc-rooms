@@ -1,4 +1,8 @@
-const LocalVideo = ({ name, localVideoRef }) => {
+import { useRoom } from "../hooks/useRoom";
+
+const LocalVideo = ({ localVideoRef }) => {
+  const { name } = useRoom();
+
   return (
     <div>
       <h4>Video</h4>

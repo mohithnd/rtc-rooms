@@ -6,14 +6,14 @@ import ChatBox from "./components/ChatBox";
 import LocalVideo from "./components/LocalVideo";
 import RemoteVideos from "./components/RemoteVideos";
 import Sidebar from "./components/Sidebar";
+import { useRoom } from "./hooks/useRoom";
 
 function App() {
-  const [roomId, setRoomId] = useState("");
-  const [joined, setJoined] = useState(false);
+  const { setRoomId, setJoined, setName, roomId, joined, name } = useRoom();
+
   const [users, setUsers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
-  const [name, setName] = useState("");
   const [selfId, setSelfId] = useState(null);
 
   const roomKeyRef = useRef(null);
@@ -330,26 +330,13 @@ function App() {
   }, [joined]);
 
   if (!joined) {
-    return (
-      <JoinRoom
-        roomId={roomId}
-        setRoomId={setRoomId}
-        name={name}
-        setName={setName}
-        handleJoinRoom={handleJoinRoom}
-      />
-    );
+    return <JoinRoom handleJoinRoom={handleJoinRoom} />;
   } else {
     return (
       <div
         style={{ display: "flex", height: "100vh", fontFamily: "sans-serif" }}
       >
-        <Sidebar
-          roomId={roomId}
-          name={name}
-          users={users}
-          handleLeaveRoom={handleLeaveRoom}
-        />
+        <Sidebar users={users} handleLeaveRoom={handleLeaveRoom} />
         <div style={{ flex: 1, padding: 12 }}>
           <ChatBox
             messages={messages}
@@ -358,7 +345,7 @@ function App() {
             setChatInput={setChatInput}
             handleSendChat={handleSendChat}
           />
-          <LocalVideo name={name} localVideoRef={localVideoRef} />
+          <LocalVideo localVideoRef={localVideoRef} />
           <RemoteVideos
             remoteUsers={remoteUsers}
             users={users}
