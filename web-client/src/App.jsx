@@ -87,7 +87,12 @@ function App() {
   } else {
     return (
       <div
-        style={{ display: "flex", height: "100vh", fontFamily: "sans-serif" }}
+        style={{
+          display: "flex",
+          height: "100vh",
+          fontFamily: "sans-serif",
+          background: "#f5f5f5",
+        }}
       >
         <Sidebar users={users} handleLeaveRoom={handleLeaveRoom} />
         <div style={{ flex: 1, padding: 12 }}>

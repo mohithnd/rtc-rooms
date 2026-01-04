@@ -10,31 +10,35 @@ const ChatBox = ({
       <h4>Chat</h4>
       <div
         style={{
-          border: "1px solid #ccc",
+          border: "1px solid #e0e0e0",
           height: 200,
           overflow: "auto",
-          padding: 8,
-          marginBottom: 8,
+          padding: 12,
+          marginBottom: 12,
+          background: "#f9f9f9",
+          borderRadius: 8,
         }}
       >
         {messages.map((m, idx) => {
           const isSelf = selfId && m.socketId === selfId;
 
           const containerStyle = {
-            marginBottom: 4,
+            marginBottom: 8,
+            padding: 8,
             textAlign: isSelf ? "right" : "left",
           };
 
           const bubbleStyle = {
             display: "inline-block",
-            padding: "4px 8px",
-            borderRadius: 4,
-            background: isSelf ? "#d1e7ff" : "#f1f1f1",
+            padding: "8px 12px",
+            borderRadius: 12,
+            background: isSelf ? "#007bff" : "#e9ecef",
+            color: isSelf ? "white" : "#333",
           };
 
           return (
             <div key={idx} style={containerStyle}>
-              <div style={{ fontSize: 10, color: "#555" }}>
+              <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>
                 [{new Date(m.timestamp).toLocaleTimeString()}]
               </div>
               <div style={bubbleStyle}>
@@ -48,9 +52,26 @@ const ChatBox = ({
         value={chatInput}
         onChange={(e) => setChatInput(e.target.value)}
         placeholder="Type A Message..."
-        style={{ width: "70%", marginRight: 8 }}
+        style={{
+          width: "70%",
+          padding: 10,
+          border: "1px solid #ddd",
+          borderRadius: 6,
+          marginRight: 8,
+        }}
       />
-      <button onClick={handleSendChat}>Send</button>
+      <button
+        style={{
+          padding: "10px 16px",
+          background: "#007bff",
+          color: "white",
+          border: "none",
+          borderRadius: 6,
+        }}
+        onClick={handleSendChat}
+      >
+        Send
+      </button>
     </div>
   );
 };

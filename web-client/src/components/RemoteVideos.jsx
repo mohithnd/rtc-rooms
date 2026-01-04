@@ -2,14 +2,23 @@ const RemoteVideos = ({ remoteUsers, users, remoteStreamsRef }) => {
   return (
     <div style={{ marginTop: 16 }}>
       <h4>Remote Videos</h4>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         {remoteUsers.map((id) => {
           const user = users.find((u) => u.id === id);
 
           return (
             <div
               key={id}
-              style={{ position: "relative", display: "inline-block" }}
+              style={{
+                display: "block",
+                lineHeight: 0,
+                fontSize: 0,
+                position: "relative",
+                marginBottom: 12,
+                borderRadius: 8,
+                overflow: "hidden",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
             >
               <video
                 autoPlay
@@ -20,19 +29,20 @@ const RemoteVideos = ({ remoteUsers, users, remoteStreamsRef }) => {
                   }
                 }}
                 style={{
-                  width: 200,
-                  height: 150,
-                  background: "#000",
+                  width: 220,
+                  height: 165,
+                  objectFit: "cover",
                 }}
               />
               <div
                 style={{
                   position: "absolute",
-                  bottom: 4,
-                  left: 4,
-                  padding: "2px 4px",
-                  background: "rgba(0,0,0,0.6)",
-                  color: "#fff",
+                  bottom: 8,
+                  left: 8,
+                  padding: "4px 8px",
+                  background: "rgba(0,0,0,0.7)",
+                  color: "white",
+                  borderRadius: 4,
                   fontSize: 12,
                 }}
               >
