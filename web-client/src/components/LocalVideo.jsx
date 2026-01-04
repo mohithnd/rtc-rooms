@@ -31,13 +31,17 @@ const LocalVideo = ({ localVideoRef }) => {
         <div
           style={{
             position: "absolute",
-            bottom: 8,
-            left: 8,
-            padding: "4px 8px",
-            background: "rgba(0,0,0,0.7)",
-            color: "white",
-            borderRadius: 4,
-            fontSize: 12,
+            bottom: 5,
+            left: 5,
+            padding: "1px 5px",
+            background: "rgba(0,0,0,0.75)",
+            color: "#ffffff",
+            borderRadius: 8,
+            fontSize: 14,
+            lineHeight: 1.3,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
           {name} (You)

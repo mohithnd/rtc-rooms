@@ -1,8 +1,26 @@
 const RemoteVideos = ({ remoteUsers, users, remoteStreamsRef }) => {
   return (
-    <div style={{ marginTop: 16 }}>
+    <div
+      style={{
+        marginTop: 16,
+        flex: 1,
+        minHeight: 200,
+        maxHeight: "40vh",
+        overflow: "auto",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <h4>Remote Videos</h4>
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 12,
+          paddingBottom: "20px",
+        }}
+      >
         {remoteUsers.map((id) => {
           const user = users.find((u) => u.id === id);
 
@@ -37,13 +55,17 @@ const RemoteVideos = ({ remoteUsers, users, remoteStreamsRef }) => {
               <div
                 style={{
                   position: "absolute",
-                  bottom: 8,
-                  left: 8,
-                  padding: "4px 8px",
-                  background: "rgba(0,0,0,0.7)",
-                  color: "white",
-                  borderRadius: 4,
-                  fontSize: 12,
+                  bottom: 5,
+                  left: 5,
+                  padding: "1px 5px",
+                  background: "rgba(0,0,0,0.75)",
+                  color: "#ffffff",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  lineHeight: 1.3,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
               >
                 {user.name}

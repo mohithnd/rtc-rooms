@@ -95,7 +95,16 @@ function App() {
         }}
       >
         <Sidebar users={users} handleLeaveRoom={handleLeaveRoom} />
-        <div style={{ flex: 1, padding: 12 }}>
+        <div
+          style={{
+            flex: 1,
+            padding: 12,
+            display: "flex",
+            flexDirection: "column",
+            height: "100vh",
+            overflow: "hidden",
+          }}
+        >
           <ChatBox
             messages={messages}
             selfId={selfId}
