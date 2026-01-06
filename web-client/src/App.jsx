@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import JoinRoom from "./components/JoinRoom";
 import ChatBox from "./components/ChatBox";
 import LocalVideo from "./components/LocalVideo";
@@ -8,8 +8,15 @@ import { useRoom } from "./hooks/useRoom";
 import useSignaling from "./hooks/useSignaling";
 import useLocalMedia from "./hooks/useLocalMedia";
 import useChat from "./hooks/useChat";
+import { ec as EC } from "elliptic";
+
+const elliptic = EC("p256");
 
 function App() {
+  const keyPairRef = useRef(null);
+  const sharedSecretsRef = useRef(new Map());
+  const publicKeysRef = useRef(new Map());
+
   const { setRoomId, setJoined, setName, roomId, joined, name } = useRoom();
 
   const [users, setUsers] = useState([]);
@@ -27,6 +34,7 @@ function App() {
     remoteUsers,
     setRemoteUsers,
     setPendingExistingUsers,
+    encryptMessage,
   } = useSignaling({
     setSelfId,
     setUsers,
@@ -37,13 +45,21 @@ function App() {
     setRoomId,
     setJoined,
     localReady,
+    publicKeysRef,
+    keyPairRef,
+    elliptic,
+    sharedSecretsRef,
   });
 
-  const { handleSendChat, chatInput, setChatInput } = useChat({
-    roomKeyRef,
-    socketRef,
-    name,
-  });
+  const { handleSendChat, chatInput, setChatInput, handleSendChatE2EE } =
+    useChat({
+      roomKeyRef,
+      socketRef,
+      name,
+      encryptMessage,
+      users,
+      setMessages,
+    });
 
   const handleJoinRoom = () => {
     if (!roomId || !name || !socketRef.current) {
@@ -52,6 +68,14 @@ function App() {
 
     socketRef.current.emit("join-room", { roomId, name });
     setJoined(true);
+
+    const keyPair = elliptic.genKeyPair();
+    keyPairRef.current = keyPair;
+    console.log("[E2EE] Generated ECDH Key Pair.");
+
+    socketRef.current.emit("e2ee-public-key", {
+      publicKey: keyPair.getPublic("hex"),
+    });
   };
 
   const handleLeaveRoom = () => {
@@ -66,6 +90,10 @@ function App() {
       stream.getTracks().forEach((track) => track.stop());
     });
     remoteStreamsRef.current = {};
+
+    sharedSecretsRef.current.clear();
+    publicKeysRef.current.clear();
+    keyPairRef.current = null;
 
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
@@ -111,6 +139,7 @@ function App() {
             chatInput={chatInput}
             setChatInput={setChatInput}
             handleSendChat={handleSendChat}
+            handleSendChatE2EE={handleSendChatE2EE}
           />
           <LocalVideo localVideoRef={localVideoRef} />
           <RemoteVideos
