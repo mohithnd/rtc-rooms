@@ -4,6 +4,7 @@ const ChatBox = ({
   chatInput,
   setChatInput,
   handleSendChat,
+  handleSendChatE2EE,
 }) => {
   return (
     <div style={{ marginBottom: 12 }}>
@@ -68,7 +69,8 @@ const ChatBox = ({
           border: "none",
           borderRadius: 6,
         }}
-        onClick={handleSendChat}
+        // onClick={handleSendChat}
+        onClick={handleSendChatE2EE}
       >
         Send
       </button>

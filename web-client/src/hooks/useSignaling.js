@@ -12,6 +12,10 @@ export default function useSignaling({
   setRoomId,
   setJoined,
   localReady,
+  publicKeysRef,
+  keyPairRef,
+  elliptic,
+  sharedSecretsRef,
 }) {
   const roomKeyRef = useRef(null);
   const socketRef = useRef(null);
@@ -67,6 +71,47 @@ export default function useSignaling({
       setSelfId(socket.id);
     });
 
+    socket.on("e2ee-public-key", ({ socketId, publicKey }) => {
+      console.log("[E2EE] Received Public Key From", socketId);
+
+      publicKeysRef.current.set(socketId, publicKey);
+
+      if (keyPairRef.current) {
+        const otherPublicKey = elliptic.keyFromPublic(publicKey, "hex");
+        const sharedSecret = keyPairRef.current.derive(
+          otherPublicKey.getPublic()
+        );
+
+        const sharedHex = sharedSecret.toString(16);
+        const AESKey = CryptoJS.SHA256(sharedHex).toString();
+
+        sharedSecretsRef.current.set(socketId, AESKey);
+        console.log(`[E2EE] Shared Secret Ready With ${socketId}`);
+      }
+    });
+
+    socket.on("e2ee-chat-message", ({ socketId, message, timestamp, name }) => {
+      try {
+        const AESKey = sharedSecretsRef.current.get(socketId);
+        if (!AESKey) {
+          console.warn("[E2EE] No Shared Secret For", socketId);
+          return;
+        }
+
+        const bytes = CryptoJS.AES.decrypt(message, AESKey);
+        const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+
+        setMessages((prev) => [
+          ...prev,
+          { socketId, message: decrypted, timestamp, name },
+        ]);
+
+        console.log(`[E2EE] Decrypted From ${socketId}: "${decrypted}"`);
+      } catch (err) {
+        console.error("[E2EE Decrypt Failed:", err);
+      }
+    });
+
     socket.on("existing-users", ({ existingUsers }) => {
       const list = existingUsers.map((u) => {
         return { id: u[0], name: u[1].name };
@@ -100,6 +145,9 @@ export default function useSignaling({
       }
 
       setRemoteUsers((prev) => prev.filter((id) => id !== socketId));
+
+      publicKeysRef.current.delete(socketId);
+      sharedSecretsRef.current.delete(socketId);
     });
 
     socket.on("chat-message", (msg) => {
@@ -176,6 +224,10 @@ export default function useSignaling({
       });
       remoteStreamsRef.current = {};
 
+      sharedSecretsRef.current.clear();
+      publicKeysRef.current.clear();
+      keyPairRef.current = null;
+
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach((track) => track.stop());
         localStreamRef.current = null;
@@ -236,6 +288,16 @@ export default function useSignaling({
     clearPendingExistingUsers();
   }, [localReady, pendingExistingUsers]);
 
+  const encryptMessage = (targetSocketId, message) => {
+    const AESKey = sharedSecretsRef.current.get(targetSocketId);
+    if (!AESKey) {
+      console.warn("[E2EE] No Shared Secret For", targetSocketId);
+      return;
+    }
+
+    return CryptoJS.AES.encrypt(message, AESKey).toString();
+  };
+
   return {
     socketRef,
     roomKeyRef,
@@ -245,5 +307,6 @@ export default function useSignaling({
     setRemoteUsers,
     pendingExistingUsers,
     setPendingExistingUsers,
+    encryptMessage,
   };
 }
