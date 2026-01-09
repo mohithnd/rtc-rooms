@@ -3,7 +3,7 @@ const ChatBox = ({
   selfId,
   chatInput,
   setChatInput,
-  handleSendChat,
+  // handleSendChat,
   handleSendChatE2EE,
 }) => {
   return (

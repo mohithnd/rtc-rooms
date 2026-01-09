@@ -16,6 +16,7 @@ export default function useSignaling({
   keyPairRef,
   elliptic,
   sharedSecretsRef,
+  joined,
 }) {
   const roomKeyRef = useRef(null);
   const socketRef = useRef(null);
@@ -287,6 +288,29 @@ export default function useSignaling({
     }
     clearPendingExistingUsers();
   }, [localReady, pendingExistingUsers]);
+
+  function keyRotation() {
+    console.log("🔄 [Key Rotation] Every 5min");
+
+    const keyPair = elliptic.genKeyPair();
+    keyPairRef.current = keyPair;
+    console.log("[E2EE] Generated ECDH Key Pair.");
+
+    socketRef.current.emit("e2ee-public-key", {
+      publicKey: keyPair.getPublic("hex"),
+    });
+
+    console.log("🔑 Rotation complete");
+  }
+
+  useEffect(() => {
+    if (joined && socketRef.current) {
+      const interval = setInterval(keyRotation, 5 * 60 * 1000);
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [joined]);
 
   const encryptMessage = (targetSocketId, message) => {
     const AESKey = sharedSecretsRef.current.get(targetSocketId);

@@ -49,6 +49,7 @@ function App() {
     keyPairRef,
     elliptic,
     sharedSecretsRef,
+    joined,
   });
 
   const { handleSendChat, chatInput, setChatInput, handleSendChatE2EE } =
