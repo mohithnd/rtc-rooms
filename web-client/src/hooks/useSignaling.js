@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import CryptoJS from "crypto-js";
+import { KEY_ROTATION_MINUTES, SIGNALING_URL, STUN_SERVERS } from "../config";
 
 export default function useSignaling({
   setSelfId,
@@ -28,7 +29,7 @@ export default function useSignaling({
 
   function createPeerConnection(remoteSocketId) {
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      iceServers: STUN_SERVERS.map((stun) => ({ urls: stun })),
     });
 
     pc.onicecandidate = (event) => {
@@ -59,7 +60,7 @@ export default function useSignaling({
   }
 
   useEffect(() => {
-    const socket = io("http://localhost:3000");
+    const socket = io(SIGNALING_URL);
     socketRef.current = socket;
 
     socket.on("room-key", ({ key }) => {
@@ -305,7 +306,10 @@ export default function useSignaling({
 
   useEffect(() => {
     if (joined && socketRef.current) {
-      const interval = setInterval(keyRotation, 5 * 60 * 1000);
+      const interval = setInterval(
+        keyRotation,
+        KEY_ROTATION_MINUTES * 60 * 1000
+      );
       return () => {
         clearInterval(interval);
       };
