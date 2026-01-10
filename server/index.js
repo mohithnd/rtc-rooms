@@ -1,7 +1,10 @@
+const dotenv = require("dotenv");
+dotenv.config();
 const express = require("express");
 const http = require("node:http");
 const { Server } = require("socket.io");
 const { registerSocketHandlers } = require("./socket");
+const { PORT, NODE_ENV, CORS_ORIGINS } = require("./config");
 
 function startServer() {
   const app = express();
@@ -10,16 +13,14 @@ function startServer() {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: "*",
-      methods: "*",
+      origin: NODE_ENV === "prod" ? CORS_ORIGINS : "*",
+      methods: ["GET", "POST"],
     },
   });
   registerSocketHandlers(io);
 
-  const PORT = 3000;
-
   httpServer.listen(PORT, () => {
-    console.log(`[server-start] port=${PORT} env=development`);
+    console.log(`[server-start] port=${PORT} env=${NODE_ENV}`);
   });
 }
 
